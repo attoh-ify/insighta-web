@@ -126,7 +126,6 @@ export async function searchProfiles(q: string, page = 1, limit = 10): Promise<P
 }
 
 export async function createProfile(name: string): Promise<SingleProfileResponse> {
-  console.log("got here")
   return authFetch<SingleProfileResponse>("/api/profiles", {
     method: "POST",
     body: JSON.stringify({ name }),

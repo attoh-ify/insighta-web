@@ -2,15 +2,20 @@ import { getProfiles } from "@/lib/api";
 import ProfilesClient from "./ProfilesClient";
 import type { ProfileFilters } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
-  searchParams: Record<string, string | string[] | undefined>;
+  // searchParams is a Promise in recent Next.js versions
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 function str(v: string | string[] | undefined): string | undefined {
   return Array.isArray(v) ? v[0] : v;
 }
 
-export default async function ProfilesPage({ searchParams }: PageProps) {
+export default async function ProfilesPage(props: PageProps) {
+  const searchParams = await props.searchParams;
+
   const filters: ProfileFilters = {
     gender: str(searchParams.gender),
     country_id: str(searchParams.country_id),
@@ -25,11 +30,20 @@ export default async function ProfilesPage({ searchParams }: PageProps) {
 
   let result = null;
   let error: string | null = null;
+
   try {
+    // This will now show the actual values in your terminal
+    console.log("Fetching with filters:", filters);
     result = await getProfiles(filters);
   } catch (e: unknown) {
     error = e instanceof Error ? e.message : "Failed to load profiles";
   }
 
-  return <ProfilesClient initial={result} filters={filters} error={error} />;
+  return (
+    <ProfilesClient
+      initial={result}
+      filters={filters}
+      error={error}
+    />
+  );
 }

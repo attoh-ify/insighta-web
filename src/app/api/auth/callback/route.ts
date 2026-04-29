@@ -25,7 +25,6 @@ export async function GET(req: NextRequest) {
     const backendRedirectUrl = `${API_URL}/auth/github/callback?code=${encodeURIComponent(
       code
     )}&state=${encodeURIComponent(state)}`;
-    console.log(backendRedirectUrl)
 
     return NextResponse.redirect(new URL(backendRedirectUrl));
   } catch (e: unknown) {

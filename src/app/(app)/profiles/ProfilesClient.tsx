@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import ProfileTable from "@/component/ui/ProfileTable";
 import Pagination from "@/component/ui/Pagination";
 import Spinner from "@/component/ui/Spinner";
@@ -22,6 +22,7 @@ export default function ProfilesClient({ initial, filters, error }: Props) {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
+  // Initialize state from props
   const [gender, setGender] = useState(filters.gender ?? "");
   const [country, setCountry] = useState(filters.country_id ?? "");
   const [ageGroup, setAgeGroup] = useState(filters.age_group ?? "");
@@ -30,6 +31,17 @@ export default function ProfilesClient({ initial, filters, error }: Props) {
   const [sortBy, setSortBy] = useState(filters.sort_by ?? "");
   const [order, setOrder] = useState(filters.order ?? "");
 
+  // Sync state if filters prop changes (e.g., back button navigation)
+  useEffect(() => {
+    setGender(filters.gender ?? "");
+    setCountry(filters.country_id ?? "");
+    setAgeGroup(filters.age_group ?? "");
+    setMinAge(filters.min_age ?? "");
+    setMaxAge(filters.max_age ?? "");
+    setSortBy(filters.sort_by ?? "");
+    setOrder(filters.order ?? "");
+  }, [filters]);
+
   const [creating, setCreating] = useState(false);
   const [createName, setCreateName] = useState("");
   const [createError, setCreateError] = useState<string | null>(null);
@@ -37,22 +49,38 @@ export default function ProfilesClient({ initial, filters, error }: Props) {
   const [exporting, setExporting] = useState(false);
 
   function pushFilters(overrides: Partial<ProfileFilters> = {}) {
-    const p = new URLSearchParams(searchParams.toString());
-    const merged = { gender, country_id: country, age_group: ageGroup, min_age: minAge, max_age: maxAge, sort_by: sortBy, order, page: "1", ...overrides };
-    Object.entries(merged).forEach(([k, v]) => { 
+    const p = new URLSearchParams();
+    
+    // Build parameters from current state + any overrides
+    const merged = { 
+      gender, 
+      country_id: country, 
+      age_group: ageGroup, 
+      min_age: minAge, 
+      max_age: maxAge, 
+      sort_by: sortBy, 
+      order, 
+      page: "1", 
+      ...overrides 
+    };
+
+    Object.entries(merged).forEach(([k, v]) => {
       if (v !== undefined && v !== "") {
         p.set(k, String(v));
-      } else {
-        p.delete(k);
       }
-     });
-    startTransition(() => router.push(`${pathname}?${p.toString()}`));
+    });
+
+    startTransition(() => {
+      router.push(`${pathname}?${p.toString()}`);
+    });
   }
 
   function onPage(page: number) {
     const p = new URLSearchParams(searchParams.toString());
     p.set("page", String(page));
-    startTransition(() => router.push(`${pathname}?${p.toString()}`));
+    startTransition(() => {
+      router.push(`${pathname}?${p.toString()}`);
+    });
   }
 
   function resetFilters() {
@@ -71,14 +99,11 @@ export default function ProfilesClient({ initial, filters, error }: Props) {
     e.preventDefault();
     setCreateError(null);
     setCreateSuccess(null);
-
     if (!createName.trim()) return;
-
     setCreating(true);
 
     try {
       const csrf = getCsrf();
-
       const res = await fetch("/api/proxy/api/profiles", {
         method: "POST",
         credentials: "include",
@@ -91,12 +116,10 @@ export default function ProfilesClient({ initial, filters, error }: Props) {
       });
 
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.message || "Failed to create");
 
       setCreateSuccess(`Profile for "${data.data?.name ?? createName}" created!`);
       setCreateName("");
-
       router.refresh();
     } catch (err: unknown) {
       setCreateError(err instanceof Error ? err.message : "Error");
@@ -116,6 +139,7 @@ export default function ProfilesClient({ initial, filters, error }: Props) {
       if (maxAge) p.set("max_age", maxAge);
       if (sortBy) p.set("sort_by", sortBy);
       if (order) p.set("order", order);
+
       const res = await fetch(`/api/proxy/api/profiles/export?${p.toString()}`, {
         credentials: "include",
         headers: { "X-API-Version": "1" },
@@ -149,7 +173,6 @@ export default function ProfilesClient({ initial, filters, error }: Props) {
         </button>
       </div>
 
-      {/* create */}
       <form onSubmit={handleCreate} style={{ display: "flex", gap: "8px", marginBottom: "8px", flexWrap: "wrap" }}>
         <input className="input" style={{ maxWidth: "280px" }} placeholder="Create profile — enter a name…" value={createName} onChange={(e) => setCreateName(e.target.value)} />
         <button type="submit" disabled={creating || !createName.trim()} className="btn btn-acid" style={{ fontSize: "0.85rem" }}>
@@ -159,7 +182,6 @@ export default function ProfilesClient({ initial, filters, error }: Props) {
       {createError && <p style={{ fontSize: "0.82rem", color: "var(--coral)", fontFamily: "DM Mono, monospace", marginBottom: "12px" }}>{createError}</p>}
       {createSuccess && <p style={{ fontSize: "0.82rem", color: "var(--acid)", fontFamily: "DM Mono, monospace", marginBottom: "12px" }}>{createSuccess}</p>}
 
-      {/* filters */}
       <div className="card" style={{ padding: "16px 20px", marginBottom: "20px" }}>
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "flex-end" }}>
           <FSelect label="Gender" value={gender} onChange={setGender} options={[["","Any"],["male","Male"],["female","Female"]]} />
