@@ -7,10 +7,8 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const accessToken = request.cookies.get("insighta_access_token")?.value;
 
-  // Inject CSRF token cookie on every response if not set
   const csrfCookie = request.cookies.get("insighta_csrf")?.value;
 
-  // Redirect unauthenticated users away from protected routes
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
   if (!isPublic && !accessToken) {
     const loginUrl = request.nextUrl.clone();
@@ -19,7 +17,6 @@ export async function middleware(request: NextRequest) {
     return res;
   }
 
-  // Redirect logged-in users away from /login
   if (pathname === "/login" && accessToken) {
     const dashboardUrl = request.nextUrl.clone();
     dashboardUrl.pathname = "/dashboard";
@@ -28,11 +25,10 @@ export async function middleware(request: NextRequest) {
 
   const response = NextResponse.next();
 
-  // Set CSRF cookie if absent
   if (!csrfCookie) {
     const token = await generateCsrfToken();
     response.cookies.set("insighta_csrf", token, {
-      httpOnly: false, // must be readable by JS to include in headers
+      httpOnly: false,
       sameSite: "strict",
       path: "/",
     });

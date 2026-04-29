@@ -5,7 +5,6 @@ import type { ProfileFilters } from "@/types";
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  // searchParams is a Promise in recent Next.js versions
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
@@ -32,8 +31,6 @@ export default async function ProfilesPage(props: PageProps) {
   let error: string | null = null;
 
   try {
-    // This will now show the actual values in your terminal
-    console.log("Fetching with filters:", filters);
     result = await getProfiles(filters);
   } catch (e: unknown) {
     error = e instanceof Error ? e.message : "Failed to load profiles";

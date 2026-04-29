@@ -22,7 +22,6 @@ export default function ProfilesClient({ initial, filters, error }: Props) {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  // Initialize state from props
   const [gender, setGender] = useState(filters.gender ?? "");
   const [country, setCountry] = useState(filters.country_id ?? "");
   const [ageGroup, setAgeGroup] = useState(filters.age_group ?? "");
@@ -31,7 +30,6 @@ export default function ProfilesClient({ initial, filters, error }: Props) {
   const [sortBy, setSortBy] = useState(filters.sort_by ?? "");
   const [order, setOrder] = useState(filters.order ?? "");
 
-  // Sync state if filters prop changes (e.g., back button navigation)
   useEffect(() => {
     setGender(filters.gender ?? "");
     setCountry(filters.country_id ?? "");
@@ -51,7 +49,6 @@ export default function ProfilesClient({ initial, filters, error }: Props) {
   function pushFilters(overrides: Partial<ProfileFilters> = {}) {
     const p = new URLSearchParams();
     
-    // Build parameters from current state + any overrides
     const merged = { 
       gender, 
       country_id: country, 

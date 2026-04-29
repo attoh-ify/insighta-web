@@ -7,14 +7,12 @@ export async function GET(req: NextRequest) {
   const state = req.nextUrl.searchParams.get("state");
   const error = req.nextUrl.searchParams.get("error");
 
-  // Handle GitHub OAuth error
   if (error) {
     return NextResponse.redirect(
       new URL(`/login?error=${encodeURIComponent(error)}`, req.url)
     );
   }
 
-  // Validate required params
   if (!code || !state) {
     return NextResponse.redirect(
       new URL("/login?error=missing_params", req.url)

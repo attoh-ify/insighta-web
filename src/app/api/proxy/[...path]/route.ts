@@ -18,7 +18,6 @@ async function proxyRequest(req: NextRequest, context: RouteContext) {
 
   const backendPath = "/" + path.join("/");
 
-  // Prevent proxy loop abuse
   if (backendPath.startsWith("/api/proxy")) {
     return NextResponse.json(
       { status: "error", message: "Invalid proxy path" },
@@ -132,7 +131,6 @@ async function proxyRequest(req: NextRequest, context: RouteContext) {
 async function buildResponse(backendRes: Response): Promise<NextResponse> {
   const contentType = backendRes.headers.get("content-type") || "";
 
-  // CSV handling
   if (contentType.includes("text/csv")) {
     const blob = await backendRes.blob();
     const disposition =
@@ -147,7 +145,6 @@ async function buildResponse(backendRes: Response): Promise<NextResponse> {
     });
   }
 
-  // JSON fallback
   let data;
   try {
     data = await backendRes.json();
