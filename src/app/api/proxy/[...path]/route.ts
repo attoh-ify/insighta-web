@@ -25,14 +25,15 @@ async function proxyRequest(req: NextRequest, context: RouteContext) {
     );
   }
 
-  /**
-   * CSRF CHECK (Edge-safe + async)
-   */
+  // CSRF check for mutating requests
   if (MUTATING.includes(req.method)) {
     const csrfHeader = req.headers.get("x-csrf-token");
     const csrfCookie = req.cookies.get("insighta_csrf")?.value;
 
-    if (!csrfHeader || !csrfCookie || csrfHeader !== csrfCookie) {
+    // validateCsrfToken is async — must be awaited
+    const isValidToken = await validateCsrfToken(csrfHeader);
+
+    if (!isValidToken || !csrfCookie || csrfHeader !== csrfCookie) {
       return NextResponse.json(
         { status: "error", message: "Invalid CSRF token" },
         { status: 403 }
@@ -43,9 +44,6 @@ async function proxyRequest(req: NextRequest, context: RouteContext) {
   const search = req.nextUrl.search;
   const url = `${API_URL}${backendPath}${search}`;
 
-  /**
-   * SAFE HEADER FORWARDING
-   */
   const headers = new Headers();
 
   const contentType = req.headers.get("content-type");
@@ -70,9 +68,7 @@ async function proxyRequest(req: NextRequest, context: RouteContext) {
     body,
   });
 
-  /**
-   * AUTO REFRESH ON 401
-   */
+  // Auto-refresh on 401
   if (backendRes.status === 401 && refreshToken) {
     const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
       method: "POST",
@@ -92,9 +88,11 @@ async function proxyRequest(req: NextRequest, context: RouteContext) {
       });
 
       const res = await buildResponse(backendRes);
+      const isProduction = process.env.NODE_ENV === "production";
 
       res.cookies.set("insighta_access_token", data.access_token, {
         httpOnly: true,
+        secure: isProduction,
         sameSite: "lax",
         path: "/",
         maxAge: 180,
@@ -102,6 +100,7 @@ async function proxyRequest(req: NextRequest, context: RouteContext) {
 
       res.cookies.set("insighta_refresh_token", data.refresh_token, {
         httpOnly: true,
+        secure: isProduction,
         sameSite: "lax",
         path: "/",
         maxAge: 300,
@@ -110,32 +109,26 @@ async function proxyRequest(req: NextRequest, context: RouteContext) {
       return res;
     }
 
+    // Refresh failed — session is fully expired
     const res = NextResponse.json(
       { status: "error", message: "Session expired. Please log in again." },
       { status: 401 }
     );
-
     res.cookies.delete("insighta_access_token");
     res.cookies.delete("insighta_refresh_token");
     res.cookies.delete("insighta_username");
-
     return res;
   }
 
   return buildResponse(backendRes);
 }
 
-/**
- * RESPONSE NORMALIZER
- */
 async function buildResponse(backendRes: Response): Promise<NextResponse> {
   const contentType = backendRes.headers.get("content-type") || "";
 
   if (contentType.includes("text/csv")) {
     const blob = await backendRes.blob();
-    const disposition =
-      backendRes.headers.get("content-disposition") || "";
-
+    const disposition = backendRes.headers.get("content-disposition") || "";
     return new NextResponse(blob, {
       status: backendRes.status,
       headers: {
@@ -149,17 +142,12 @@ async function buildResponse(backendRes: Response): Promise<NextResponse> {
   try {
     data = await backendRes.json();
   } catch {
-    data = { message: "Invalid JSON response from backend" };
+    data = { message: "Invalid response from backend" };
   }
 
-  return NextResponse.json(data, {
-    status: backendRes.status,
-  });
+  return NextResponse.json(data, { status: backendRes.status });
 }
 
-/**
- * METHOD EXPORTS
- */
 export const GET = proxyRequest;
 export const POST = proxyRequest;
 export const PUT = proxyRequest;
