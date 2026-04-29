@@ -125,12 +125,12 @@ export async function searchProfiles(q: string, page = 1, limit = 10): Promise<P
   );
 }
 
-export async function createProfile(name: string): Promise<SingleProfileResponse> {
-  return authFetch<SingleProfileResponse>("/api/profiles", {
-    method: "POST",
-    body: JSON.stringify({ name }),
-  });
-}
+// export async function createProfile(name: string): Promise<SingleProfileResponse> {
+//   return authFetch<SingleProfileResponse>("/api/profiles", {
+//     method: "POST",
+//     body: JSON.stringify({ name }),
+//   });
+// }
 
 export async function getMe(): Promise<{ status: string; data: User }> {
   return authFetch<{ status: string; data: User }>("/auth/me");

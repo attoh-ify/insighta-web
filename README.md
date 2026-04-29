@@ -26,7 +26,7 @@ Browser
   │           └── fetch(BACKEND/api/profiles)
   │                 └── Authorization: Bearer <token from httpOnly cookie>
   │
-  └── Client interactions (create, filter, export, logout)
+  └── Client interactions (filter, export, logout)
         └── fetch(/api/proxy/...) → Next.js Route Handler → Backend
                                           └── injects Authorization header
                                           └── handles auto token refresh
@@ -84,7 +84,7 @@ The proxy validates that the header value matches the cookie value AND is a vali
 |---|---|---|
 | `/login` | GitHub OAuth login button | Public |
 | `/dashboard` | Total profiles, gender breakdown, recent activity | Required |
-| `/profiles` | Filterable list with pagination, create form, CSV export | Required |
+| `/profiles` | Filterable list with pagination, CSV export | Required |
 | `/profiles/[id]` | Full profile detail view | Required |
 | `/search` | Natural language search with example queries | Required |
 | `/account` | User info, role, logout | Required |
@@ -169,7 +169,6 @@ Roles are enforced by the backend. The portal reflects them:
 | Search profiles | ✅ | ✅ |
 | Export CSV | ✅ | ✅ |
 | View profile detail | ✅ | ✅ |
-| Create profile | ✅ | ❌ (403 from backend) |
 
 ---
 
