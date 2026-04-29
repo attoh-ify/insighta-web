@@ -1,0 +1,151 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #0a0a0f;
+  --ink-50: #f0f0f5;
+  --ink-100: #d8d8e8;
+  --ink-200: #a0a0c0;
+  --ink-300: #6868a0;
+  --ink-400: #3c3c70;
+  --ink-500: #1a1a40;
+  --ink-600: #12122e;
+  --ink-700: #0d0d20;
+  --acid: #c8ff00;
+  --acid-dim: #a0cc00;
+  --coral: #ff4d6a;
+  --ice: #00d4ff;
+  --surface: #0f0f1a;
+  --surface-2: #161625;
+  --border: rgba(168, 168, 210, 0.12);
+  --border-hover: rgba(200, 255, 0, 0.3);
+}
+
+* { box-sizing: border-box; }
+html { color-scheme: dark; }
+
+body {
+  background: var(--ink);
+  color: var(--ink-50);
+  font-family: 'Syne', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--ink); }
+::-webkit-scrollbar-thumb { background: var(--ink-400); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--acid); }
+
+::selection { background: var(--acid); color: var(--ink); }
+
+:focus-visible {
+  outline: 2px solid var(--acid);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.font-mono { font-family: 'DM Mono', monospace; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-300);
+  padding: 10px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.data-table td {
+  padding: 12px 16px;
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink-100);
+  vertical-align: middle;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tbody tr { transition: background 0.15s; cursor: pointer; }
+.data-table tbody tr:hover { background: var(--surface-2); }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+.badge-acid { background: rgba(200,255,0,0.12); color: var(--acid); }
+.badge-coral { background: rgba(255,77,106,0.12); color: var(--coral); }
+.badge-ice { background: rgba(0,212,255,0.12); color: var(--ice); }
+.badge-neutral { background: rgba(168,168,210,0.1); color: var(--ink-200); }
+
+.input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--ink-50);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.875rem;
+  padding: 10px 14px;
+  width: 100%;
+  transition: border-color 0.2s;
+  outline: none;
+}
+.input:focus { border-color: var(--acid); }
+.input::placeholder { color: var(--ink-300); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+}
+.btn-acid { background: var(--acid); color: var(--ink); }
+.btn-acid:hover { background: var(--acid-dim); }
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--ink-100); }
+.btn-ghost:hover { border-color: var(--border-hover); color: var(--acid); }
+.btn-danger { background: rgba(255,77,106,0.12); color: var(--coral); border: 1px solid rgba(255,77,106,0.2); }
+.btn-danger:hover { background: rgba(255,77,106,0.2); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.page-enter { animation: fadeIn 0.3s ease forwards; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.skeleton {
+  background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 6px;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
