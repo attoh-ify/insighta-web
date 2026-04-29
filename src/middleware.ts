@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateCsrfToken } from "./lib/csrf";
 
-const PUBLIC_PATHS = ["/login", "/api/auth"];
+// ADD "/auth/success" to the PUBLIC_PATHS
+const PUBLIC_PATHS = ["/login", "/api/auth", "/auth/success"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -10,13 +11,15 @@ export async function middleware(request: NextRequest) {
   const csrfCookie = request.cookies.get("insighta_csrf")?.value;
 
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+  
+  // If the path is not public and there's no token, redirect to login
   if (!isPublic && !accessToken) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
-    const res = NextResponse.redirect(loginUrl);
-    return res;
+    return NextResponse.redirect(loginUrl);
   }
 
+  // If user is already logged in and tries to access login page, go to dashboard
   if (pathname === "/login" && accessToken) {
     const dashboardUrl = request.nextUrl.clone();
     dashboardUrl.pathname = "/dashboard";
