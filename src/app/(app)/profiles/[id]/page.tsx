@@ -1,7 +1,8 @@
-import { getProfile } from "@/lib/api";
+import { getMe, getProfile } from "@/lib/api";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ApiError } from "@/lib/api";
+import DeleteProfileButton from "./DeleteProfileButton";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -10,6 +11,8 @@ interface PageProps {
 export default async function ProfileDetailPage(props: PageProps) {
   const params = await props.params;
   const id = params.id;
+  const userRes = await getMe().catch(() => null);
+  const isAdmin = userRes?.data?.role === "admin";
 
   let profile;
   try {
@@ -51,6 +54,7 @@ export default async function ProfileDetailPage(props: PageProps) {
         >
           ← Back to Profiles
         </Link>
+        {isAdmin && <DeleteProfileButton id={id} />}
         <h1 style={{ fontSize: "1.6rem", fontWeight: 800, letterSpacing: "-0.02em" }}>
           {profile.name}
         </h1>

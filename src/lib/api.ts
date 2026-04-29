@@ -1,3 +1,4 @@
+import "server-only";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type {
@@ -125,12 +126,18 @@ export async function searchProfiles(q: string, page = 1, limit = 10): Promise<P
   );
 }
 
-// export async function createProfile(name: string): Promise<SingleProfileResponse> {
-//   return authFetch<SingleProfileResponse>("/api/profiles", {
-//     method: "POST",
-//     body: JSON.stringify({ name }),
-//   });
-// }
+export async function createProfile(name: string): Promise<SingleProfileResponse> {
+  return authFetch<SingleProfileResponse>("/api/profiles", {
+    method: "POST",
+    body: JSON.stringify({ name }),
+  });
+}
+
+export async function deleteProfile(id: string): Promise<{ status: string }> {
+  return authFetch<{ status: string }>(`/api/profiles/${id}`, {
+    method: "DELETE",
+  });
+}
 
 export async function getMe(): Promise<{ status: string; data: User }> {
   return authFetch<{ status: string; data: User }>("/auth/me");

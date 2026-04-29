@@ -11,15 +11,17 @@ interface Props {
   initial: PaginatedResponse | null;
   filters: ProfileFilters;
   error: string | null;
+  role: string;
 }
 
 const AGE_GROUPS = ["child", "teen", "adult", "senior"];
 const SORT_FIELDS = ["name", "age", "gender", "country_id", "created_at"];
 
-export default function ProfilesClient({ initial, filters, error }: Props) {
+export default function ProfilesClient({ initial, filters, error, role }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const isAdmin = role === "admin";
   const [isPending, startTransition] = useTransition();
 
   const [gender, setGender] = useState(filters.gender ?? "");
@@ -40,10 +42,10 @@ export default function ProfilesClient({ initial, filters, error }: Props) {
     setOrder(filters.order ?? "");
   }, [filters]);
 
-  // const [creating, setCreating] = useState(false);
-  // const [createName, setCreateName] = useState("");
-  // const [createError, setCreateError] = useState<string | null>(null);
-  // const [createSuccess, setCreateSuccess] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [createName, setCreateName] = useState("");
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createSuccess, setCreateSuccess] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
 
   function pushFilters(overrides: Partial<ProfileFilters> = {}) {
@@ -85,45 +87,45 @@ export default function ProfilesClient({ initial, filters, error }: Props) {
     startTransition(() => router.push(pathname));
   }
 
-  // function getCsrf() {
-  //   return document.cookie
-  //     .split("; ")
-  //     .find((r) => r.startsWith("insighta_csrf="))
-  //     ?.split("=")[1];
-  // }
+  function getCsrf() {
+    return document.cookie
+      .split("; ")
+      .find((r) => r.startsWith("insighta_csrf="))
+      ?.split("=")[1];
+  }
 
-  // async function handleCreate(e: React.FormEvent) {
-  //   e.preventDefault();
-  //   setCreateError(null);
-  //   setCreateSuccess(null);
-  //   if (!createName.trim()) return;
-  //   setCreating(true);
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    setCreateError(null);
+    setCreateSuccess(null);
+    if (!createName.trim()) return;
+    setCreating(true);
 
-  //   try {
-  //     const csrf = getCsrf();
-  //     const res = await fetch("/api/proxy/api/profiles", {
-  //       method: "POST",
-  //       credentials: "include",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         "X-API-Version": "1",
-  //         ...(csrf ? { "x-csrf-token": csrf } : {}),
-  //       },
-  //       body: JSON.stringify({ name: createName.trim() }),
-  //     });
+    try {
+      const csrf = getCsrf();
+      const res = await fetch("/api/proxy/api/profiles", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Version": "1",
+          ...(csrf ? { "x-csrf-token": csrf } : {}),
+        },
+        body: JSON.stringify({ name: createName.trim() }),
+      });
 
-  //     const data = await res.json();
-  //     if (!res.ok) throw new Error(data.message || "Failed to create");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to create");
 
-  //     setCreateSuccess(`Profile for "${data.data?.name ?? createName}" created!`);
-  //     setCreateName("");
-  //     router.refresh();
-  //   } catch (err: unknown) {
-  //     setCreateError(err instanceof Error ? err.message : "Error");
-  //   } finally {
-  //     setCreating(false);
-  //   }
-  // }
+      setCreateSuccess(`Profile for "${data.data?.name ?? createName}" created!`);
+      setCreateName("");
+      router.refresh();
+    } catch (err: unknown) {
+      setCreateError(err instanceof Error ? err.message : "Error");
+    } finally {
+      setCreating(false);
+    }
+  }
 
   async function handleExport() {
     setExporting(true);
@@ -170,15 +172,20 @@ export default function ProfilesClient({ initial, filters, error }: Props) {
         </button>
       </div>
 
-      {/* <form onSubmit={handleCreate} style={{ display: "flex", gap: "8px", marginBottom: "8px", flexWrap: "wrap" }}>
-        <input className="input" style={{ maxWidth: "280px" }} placeholder="Create profile — enter a name…" value={createName} onChange={(e) => setCreateName(e.target.value)} />
-        <button type="submit" disabled={creating || !createName.trim()} className="btn btn-acid" style={{ fontSize: "0.85rem" }}>
-          {creating ? <Spinner size={14} /> : "+ Create"}
-        </button>
-      </form>
-      {createError && <p style={{ fontSize: "0.82rem", color: "var(--coral)", fontFamily: "DM Mono, monospace", marginBottom: "12px" }}>{createError}</p>}
-      {createSuccess && <p style={{ fontSize: "0.82rem", color: "var(--acid)", fontFamily: "DM Mono, monospace", marginBottom: "12px" }}>{createSuccess}</p>} */}
-
+      {isAdmin && (
+        <form onSubmit={handleCreate} style={{ display: "flex", gap: "8px", marginBottom: "20px" }}>
+          <input 
+            className="input" 
+            placeholder="Create profile..." 
+            value={createName} 
+            onChange={(e) => setCreateName(e.target.value)} 
+          />
+          <button type="submit" disabled={creating} className="btn btn-acid">
+            {creating ? <Spinner size={14} /> : "+ Create"}
+          </button>
+        </form>
+      )}
+      
       <div className="card" style={{ padding: "16px 20px", marginBottom: "20px" }}>
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "flex-end" }}>
           <FSelect label="Gender" value={gender} onChange={setGender} options={[["","Any"],["male","Male"],["female","Female"]]} />

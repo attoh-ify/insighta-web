@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { generateCsrfToken } from "@/lib/csrf";
 
 export async function GET(_req: NextRequest) {
-  const token = generateCsrfToken();
+  const token = await generateCsrfToken();
 
   const res = NextResponse.json({ token });
 

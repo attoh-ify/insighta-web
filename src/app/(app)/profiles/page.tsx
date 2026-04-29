@@ -1,4 +1,4 @@
-import { getProfiles } from "@/lib/api";
+import { getMe, getProfiles } from "@/lib/api";
 import ProfilesClient from "./ProfilesClient";
 import type { ProfileFilters } from "@/types";
 
@@ -14,6 +14,10 @@ function str(v: string | string[] | undefined): string | undefined {
 
 export default async function ProfilesPage(props: PageProps) {
   const searchParams = await props.searchParams;
+
+  // Fetch user to check role
+  const userRes = await getMe().catch(() => null);
+  const role = userRes?.data?.role ?? "analyst";
 
   const filters: ProfileFilters = {
     gender: str(searchParams.gender),
@@ -41,6 +45,7 @@ export default async function ProfilesPage(props: PageProps) {
       initial={result}
       filters={filters}
       error={error}
+      role={role}
     />
   );
 }
